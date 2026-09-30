@@ -1,0 +1,16 @@
+# AWS credentials file
+.env
+
+# Terraform working directory (provider binaries, 100MB+)
+.terraform/
+
+# State files: contain resource IDs and sometimes SECRETS in plain text
+*.tfstate
+*.tfstate.*
+
+# Variable files often hold passwords or account-specific values
+.tfvars
+!example.tfvars
+
+
+
