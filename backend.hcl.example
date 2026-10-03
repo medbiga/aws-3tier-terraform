@@ -1,0 +1,6 @@
+bucket       = "tfstate-3tier-<ACCOUNT_ID>"
+key          = "3tier/dev/terraform.tfstate"
+region       = "us-east-1"
+profile      = "tf-lab"
+encrypt      = true
+use_lockfile = true
