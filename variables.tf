@@ -44,4 +44,15 @@ variable "db_subnet_cidrs" {
   default     = ["10.0.21.0/24", "10.0.22.0/24"]
 }
 
+# ------------- ports for the application and database -------------
+variable "app_port" {
+  description = "Port the application listens on"
+  type        = number
+  default     = 80
+}
 
+variable "db_port" {
+  description = "Port the database listens on (MySQL)"
+  type        = number
+  default     = 3306
+}
