@@ -56,3 +56,28 @@ variable "db_port" {
   type        = number
   default     = 3306
 }
+
+# ------------- EC2 instance and ASG settings -------------
+variable "instance_type" {
+  description = "EC2 instance size for the app tier"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "asg_min_size" {
+  description = "Minimum number of app servers"
+  type        = number
+  default     = 2
+}
+
+variable "asg_max_size" {
+  description = "Maximum number of app servers"
+  type        = number
+  default     = 4
+}
+
+variable "asg_desired_capacity" {
+  description = "Normal number of app servers"
+  type        = number
+  default     = 2
+}
