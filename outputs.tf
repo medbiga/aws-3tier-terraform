@@ -24,3 +24,8 @@ output "nat_gateway_public_ip" {
   description = "Public IP used by private subnets for outbound internet"
   value       = aws_eip.nat.public_ip
 }
+
+output "alb_url" {
+  description = "Public URL of the application"
+  value       = "http://${aws_lb.main.dns_name}"
+}
