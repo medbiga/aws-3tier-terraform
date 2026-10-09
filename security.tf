@@ -5,7 +5,7 @@
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
   description = "ALB: allow HTTP from the internet"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.network.vpc_id
 
   tags = {
     Name = "${local.name_prefix}-alb-sg"
@@ -15,7 +15,7 @@ resource "aws_security_group" "alb" {
 resource "aws_security_group" "app" {
   name        = "${local.name_prefix}-app-sg"
   description = "App tier: allow traffic only from the ALB"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.network.vpc_id
 
   tags = {
     Name = "${local.name_prefix}-app-sg"
@@ -25,7 +25,7 @@ resource "aws_security_group" "app" {
 resource "aws_security_group" "db" {
   name        = "${local.name_prefix}-db-sg"
   description = "DB tier: allow MySQL only from the app tier"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.network.vpc_id
 
   tags = {
     Name = "${local.name_prefix}-db-sg"

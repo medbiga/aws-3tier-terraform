@@ -2,27 +2,27 @@
 
 output "vpc_id" {
   description = "The ID of the VPC"
-  value       = aws_vpc.main.id
+  value       = module.network.vpc_id
 }
 
 output "public_subnet_ids" {
   description = "The IDs of the public subnets"
-  value       = aws_subnet.public[*].id
+  value       = module.network.public_subnet_ids
 }
 
 output "app_subnet_ids" {
   description = "The IDs of the private app subnets"
-  value       = aws_subnet.app[*].id
+  value       = module.network.app_subnet_ids
 }
 
 output "db_subnet_ids" {
   description = "The IDs of the private database subnets"
-  value       = aws_subnet.db[*].id
+  value       = module.network.db_subnet_ids
 }
 
 output "nat_gateway_public_ip" {
   description = "Public IP used by private subnets for outbound internet"
-  value       = aws_eip.nat.public_ip
+  value       = module.network.nat_public_ip
 }
 
 output "alb_url" {

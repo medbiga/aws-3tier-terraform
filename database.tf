@@ -1,7 +1,7 @@
 # ---------- DB subnet group (which floors the vault may use) ----------
 resource "aws_db_subnet_group" "main" {
   name       = "${local.name_prefix}-db-subnets"
-  subnet_ids = aws_subnet.db[*].id
+  subnet_ids = module.network.db_subnet_ids
 
   tags = {
     Name = "${local.name_prefix}-db-subnets"
