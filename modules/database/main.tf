@@ -1,16 +1,16 @@
 # ---------- DB subnet group (which floors the vault may use) ----------
 resource "aws_db_subnet_group" "main" {
-  name       = "${local.name_prefix}-db-subnets"
-  subnet_ids = module.network.db_subnet_ids
+  name       = "${var.name_prefix}-db-subnets"
+  subnet_ids = var.db_subnet_ids
 
   tags = {
-    Name = "${local.name_prefix}-db-subnets"
+    Name = "${var.name_prefix}-db-subnets"
   }
 }
 
 # ---------- The database ----------
 resource "aws_db_instance" "main" {
-  identifier     = "${local.name_prefix}-mysql"
+  identifier     = "${var.name_prefix}-mysql"
   engine         = "mysql"
   engine_version = "8.4"
   instance_class = "db.t4g.micro"
@@ -24,7 +24,7 @@ resource "aws_db_instance" "main" {
   manage_master_user_password = true
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.db.id]
+  vpc_security_group_ids = [var.db_sg_id]
   publicly_accessible    = false
   multi_az               = false
 
@@ -34,21 +34,6 @@ resource "aws_db_instance" "main" {
   apply_immediately       = true
 
   tags = {
-    Name = "${local.name_prefix}-mysql"
+    Name = "${var.name_prefix}-mysql"
   }
-}
-
-# ---------- Let app servers read the DB secret ----------
-resource "aws_iam_role_policy" "app_read_db_secret" {
-  name = "${local.name_prefix}-read-db-secret"
-  role = aws_iam_role.app.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue"]
-      Resource = aws_db_instance.main.master_user_secret[0].secret_arn
-    }]
-  })
 }

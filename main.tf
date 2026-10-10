@@ -1,7 +1,13 @@
+# =========================================================
+# Root module: wires the five modules together.
+# Values flow between modules ONLY through this file.
+# =========================================================
+
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
 }
 
+# ---------- Network: VPC, subnets, gateways, routing ----------
 module "network" {
   source = "./modules/network"
 
@@ -12,56 +18,47 @@ module "network" {
   db_subnet_cidrs     = var.db_subnet_cidrs
 }
 
-# ---------- Refactor: resources moved into the network module ----------
-moved {
-  from = aws_vpc.main
-  to   = module.network.aws_vpc.main
+# ---------- Security: security groups chained by reference ----------
+module "security" {
+  source = "./modules/security"
+
+  name_prefix = local.name_prefix
+  vpc_id      = module.network.vpc_id
+  app_port    = var.app_port
+  db_port     = var.db_port
 }
-moved {
-  from = aws_subnet.public
-  to   = module.network.aws_subnet.public
+
+# ---------- Web tier: Application Load Balancer ----------
+module "alb" {
+  source = "./modules/alb"
+
+  name_prefix       = local.name_prefix
+  vpc_id            = module.network.vpc_id
+  public_subnet_ids = module.network.public_subnet_ids
+  alb_sg_id         = module.security.alb_sg_id
+  app_port          = var.app_port
 }
-moved {
-  from = aws_subnet.app
-  to   = module.network.aws_subnet.app
+
+# ---------- Data tier: RDS MySQL ----------
+module "database" {
+  source = "./modules/database"
+
+  name_prefix   = local.name_prefix
+  db_subnet_ids = module.network.db_subnet_ids
+  db_sg_id      = module.security.db_sg_id
 }
-moved {
-  from = aws_subnet.db
-  to   = module.network.aws_subnet.db
-}
-moved {
-  from = aws_internet_gateway.main
-  to   = module.network.aws_internet_gateway.main
-}
-moved {
-  from = aws_eip.nat
-  to   = module.network.aws_eip.nat
-}
-moved {
-  from = aws_nat_gateway.main
-  to   = module.network.aws_nat_gateway.main
-}
-moved {
-  from = aws_route_table.public
-  to   = module.network.aws_route_table.public
-}
-moved {
-  from = aws_route_table.app
-  to   = module.network.aws_route_table.app
-}
-moved {
-  from = aws_route_table.db
-  to   = module.network.aws_route_table.db
-}
-moved {
-  from = aws_route_table_association.public
-  to   = module.network.aws_route_table_association.public
-}
-moved {
-  from = aws_route_table_association.app
-  to   = module.network.aws_route_table_association.app
-}
-moved {
-  from = aws_route_table_association.db
-  to   = module.network.aws_route_table_association.db
+
+# ---------- App tier: launch template, ASG, instance role ----------
+module "compute" {
+  source = "./modules/compute"
+
+  name_prefix          = local.name_prefix
+  app_subnet_ids       = module.network.app_subnet_ids
+  app_sg_id            = module.security.app_sg_id
+  target_group_arn     = module.alb.target_group_arn
+  db_secret_arn        = module.database.db_secret_arn
+  instance_type        = var.instance_type
+  asg_min_size         = var.asg_min_size
+  asg_max_size         = var.asg_max_size
+  asg_desired_capacity = var.asg_desired_capacity
 }

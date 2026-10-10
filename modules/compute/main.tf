@@ -11,7 +11,7 @@ data "aws_ami" "al2023" {
 
 # ---------- IAM: let servers use Systems Manager (no SSH) ----------
 resource "aws_iam_role" "app" {
-  name = "${local.name_prefix}-app-role"
+  name = "${var.name_prefix}-app-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -29,17 +29,32 @@ resource "aws_iam_role_policy_attachment" "app_ssm" {
 }
 
 resource "aws_iam_instance_profile" "app" {
-  name = "${local.name_prefix}-app-profile"
+  name = "${var.name_prefix}-app-profile"
   role = aws_iam_role.app.name
+}
+
+# ---------- Let app servers read the DB secret (moved here from database.tf) ----------
+resource "aws_iam_role_policy" "app_read_db_secret" {
+  name = "${var.name_prefix}-read-db-secret"
+  role = aws_iam_role.app.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue"]
+      Resource = var.db_secret_arn
+    }]
+  })
 }
 
 # ---------- Launch template (the recipe for every server) ----------
 resource "aws_launch_template" "app" {
-  name_prefix   = "${local.name_prefix}-app-"
+  name_prefix   = "${var.name_prefix}-app-"
   image_id      = data.aws_ami.al2023.id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.app.id]
+  vpc_security_group_ids = [var.app_sg_id]
 
   iam_instance_profile {
     name = aws_iam_instance_profile.app.name
@@ -54,7 +69,7 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "${local.name_prefix}-app"
+      Name = "${var.name_prefix}-app"
       Tier = "app"
     }
   }
@@ -62,12 +77,12 @@ resource "aws_launch_template" "app" {
 
 # ---------- Auto Scaling Group (the shift manager) ----------
 resource "aws_autoscaling_group" "app" {
-  name                = "${local.name_prefix}-app-asg"
+  name                = "${var.name_prefix}-app-asg"
   min_size            = var.asg_min_size
   max_size            = var.asg_max_size
   desired_capacity    = var.asg_desired_capacity
-  vpc_zone_identifier = module.network.app_subnet_ids
-  target_group_arns   = [aws_lb_target_group.app.arn]
+  vpc_zone_identifier = var.app_subnet_ids
+  target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
   health_check_grace_period = 300

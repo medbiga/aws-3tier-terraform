@@ -3,32 +3,32 @@
 # =========================================================
 
 resource "aws_security_group" "alb" {
-  name        = "${local.name_prefix}-alb-sg"
+  name        = "${var.name_prefix}-alb-sg"
   description = "ALB: allow HTTP from the internet"
-  vpc_id      = module.network.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${local.name_prefix}-alb-sg"
+    Name = "${var.name_prefix}-alb-sg"
   }
 }
 
 resource "aws_security_group" "app" {
-  name        = "${local.name_prefix}-app-sg"
+  name        = "${var.name_prefix}-app-sg"
   description = "App tier: allow traffic only from the ALB"
-  vpc_id      = module.network.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${local.name_prefix}-app-sg"
+    Name = "${var.name_prefix}-app-sg"
   }
 }
 
 resource "aws_security_group" "db" {
-  name        = "${local.name_prefix}-db-sg"
+  name        = "${var.name_prefix}-db-sg"
   description = "DB tier: allow MySQL only from the app tier"
-  vpc_id      = module.network.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${local.name_prefix}-db-sg"
+    Name = "${var.name_prefix}-db-sg"
   }
 }
 
