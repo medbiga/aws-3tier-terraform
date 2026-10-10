@@ -13,7 +13,7 @@ resource "aws_lb" "main" {
 
 # ---------- Target group + health checks ----------
 resource "aws_lb_target_group" "app" {
-  name        = "${var.name_prefix}-app-tg"
+  name        = "${var.name_prefix}-tg"
   port        = var.app_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
