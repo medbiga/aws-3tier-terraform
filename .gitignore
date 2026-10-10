@@ -13,4 +13,6 @@
 !example.tfvars
 
 backend.hcl
+# Local override files (can be ignored as they are usually machine-specific)
+*.tfplan
 
